@@ -22,3 +22,7 @@ con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, 
 
 dbGetInfo(con)
 dbListTables(con)
+
+
+
+#testing testing
