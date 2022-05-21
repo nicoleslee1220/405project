@@ -25,4 +25,8 @@ dbListTables(con)
 
 
 
+<<<<<<< HEAD
 #nicole lee
+=======
+#testing testing
+>>>>>>> d8f48fb1c3cb3b5789a4d9f3451dbcad1f7aa587
