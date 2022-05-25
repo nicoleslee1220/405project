@@ -1,13 +1,5 @@
 library(RMySQL)
-
-
 drv <- dbDriver("MySQL")
-
-######################################## simple copy over table
-######################################## simple copy over table
-######################################## simple copy over table
-
-
 xdbsock <- ""
 
 
@@ -22,11 +14,3 @@ con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, 
 
 dbGetInfo(con)
 dbListTables(con)
-
-
-
-<<<<<<< HEAD
-#nicole lee
-=======
-#testing testing
->>>>>>> d8f48fb1c3cb3b5789a4d9f3451dbcad1f7aa587
