@@ -1,0 +1,141 @@
+##Connecting to group project DB
+library(RMySQL)
+drv <- dbDriver("MySQL")
+
+xdbsock <- ""
+xdbuser <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_USER")
+xpw     <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PW")
+xdbname <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_DBNAME")
+xdbhost <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_HOST")
+xdbport <- as.integer( Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PORT") )
+
+
+con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, port=xdbport, unix.sock=xdbsock)
+
+dbGetInfo(con)
+dbListTables(con)
+
+
+
+
+##creating table in DB
+xpath_main_data <- Sys.getenv("PATH_MY_MAIN_DATA")
+xpath_scrape <- file.path(xpath_main_data, "spoonacular")
+xtableName <- "spoonacularRecipe"
+xbool.tableExists <- dbExistsTable(con, xtableName) ; xbool.tableExists
+
+if(!xbool.tableExists) {
+  qstr <-
+    paste0(
+      "CREATE TABLE ", xtableName, "  ",
+      "(DT VARCHAR(15) NOT NULL, ",
+      "recipeID INT(10), ",
+      "vegetarian VARCHAR(5), ",
+      "vegan VARCHAR(5), ",
+      "glutenFree VARCHAR(5), ",
+      "dairyFree VARCHAR(5), ",
+      "veryHealthy VARCHAR(5), ",
+      "cheap VARCHAR(5), ",
+      "veryPopular VARCHAR(5), ",
+      "sustainable VARCHAR(5), ",
+      "lowFodmap VARCHAR(5), ",
+      "weightWatcherSmartPoints INT(7), ",
+      "gaps VARCHAR(5), ",
+      "preparationMinutes INT(7), ",
+      "cookingMinutes INT(7), ",
+      "aggregateLikes INT(7), ",
+      "healthScore  INT(7), ",
+      "sourceName VARCHAR(10), ",
+      "pricePerServing DECIMAL(10, 2), ",
+      "PRIMARY KEY (DT))"
+      
+    )
+  
+  xx <- dbGetQuery(con, qstr)
+}
+
+
+
+
+
+
+##Inserting json data into DB
+
+xgfn <- list.files(xpath_scrape, pattern="^recipe")
+xgfn_sub <- xgfn
+
+ii <- 1
+for(ii in 1:length(xgfn_sub)) {
+  
+  xthis_fn <- xgfn_sub[ii] 
+  xxx <- strsplit(xthis_fn, "_")[[1]]
+  DT <- xxx[2] #DT is the recipe number
+  recipeID <- xxx[2]
+
+
+  xthis_ls <- fromJSON( file=file.path(xpath_scrape, xthis_fn) )
+
+  vegetarian <- xthis_ls[[c("vegetarian")]]
+  vegan <- xthis_ls[[c("vegan")]]
+  glutenFree <- xthis_ls[[c("glutenFree")]]
+  dairyFree <- xthis_ls[[c("dairyFree")]]
+  veryHealthy <- xthis_ls[[c("veryHealthy")]]
+  cheap <- xthis_ls[[c("cheap")]]
+  veryPopular <- xthis_ls[[c("veryPopular")]]
+  sustainable <- xthis_ls[[c("sustainable")]]
+  lowFodmap <- xthis_ls[[c("lowFodmap")]]
+  weightWatcherSmartPoints <- xthis_ls[[c("weightWatcherSmartPoints")]]
+  gaps <- xthis_ls[[c("gaps")]]
+  preparationMinutes <- xthis_ls[[c("preparationMinutes")]]
+  veryHealthy <- xthis_ls[[c("veryHealthy")]]
+  cookingMinutes <- xthis_ls[[c("cookingMinutes")]]
+  aggregateLikes <- xthis_ls[[c("aggregateLikes")]]
+  healthScore <- xthis_ls[[c("healthScore")]]
+  sourceName <- xthis_ls[[c("sourceName")]]
+  pricePerServing <- xthis_ls[[c("pricePerServing")]]
+ 
+  
+
+      
+  qstr <- paste0(
+          "INSERT INTO ", xtableName, " (DT, recipeID, vegetarian, vegan, glutenFree, dairyFree, veryHealthy,
+                                        cheap, veryPopular, sustainable, lowFodmap, weightWatcherSmartPoints, gaps, preparationMinutes,
+                                        cookingMinutes, aggregateLikes, healthScore, sourceName, pricePerServing) ",
+          # "INSERT INTO ", xtableName, " (DT, recipeID, vegetarian, pricePerServing) ",
+
+          " VALUES ",
+          "('",
+          DT, "', '",
+          as.integer(recipeID), "', '",
+          vegetarian, "', '",
+          vegan, "', '",
+          glutenFree, "', '",
+          dairyFree, "', '",
+          veryHealthy, "', '",
+          cheap, "', '",
+          veryPopular, "', '",
+          sustainable, "', '",
+          lowFodmap, "', '",
+          as.integer(weightWatcherSmartPoints), "', '",
+          gaps, "', '",
+          as.integer(preparationMinutes), "', '",
+          as.integer(cookingMinutes), "', '",
+          as.integer(aggregateLikes), "', '",
+          as.integer(healthScore), "', '",
+          sourceName,"', '",
+          as.integer(pricePerServing), "')"
+        )
+      
+      xx <- try(dbGetQuery(con, qstr), silent=TRUE)
+      
+      if( "try-error" %in% class(xx) ) {
+        cat("SQL insert into Team Table failed for recipe# ", DT, "\n")
+      } else {
+        cat("Successfully inserted recipe# ", DT, "into Table", "\n")
+      }
+ 
+}
+
+
+
+

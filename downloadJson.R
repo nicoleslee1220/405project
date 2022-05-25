@@ -28,8 +28,8 @@ xAPIkey
 
 
 ## Spoonacular has about 1.7 million recipes, downloading a subset
-ii <- 5600
-for(ii in 5600:5700) {
+ii <- 5600 
+for(ii in 5600:6000) {
 
     xthis_url <-
       paste0(
@@ -45,7 +45,7 @@ for(ii in 5600:5700) {
     if("try-error" %in% class(xthisJSON)){
       cat("Could not read recipe", ii, "\n")
     }else{
-      xtn_out <- paste0("recipe", ii, "__spoonacular.json")
+      xtn_out <- paste0("recipe_", ii, "_spoonacular.json")
       writeLines( xthisJSON, file.path(xpath_scrape, xtn_out) )
       cat("Done getting recipe", ii, "\n" )
     }
