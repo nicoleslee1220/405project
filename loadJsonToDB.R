@@ -1,5 +1,6 @@
 ##Connecting to group project DB
 library(RMySQL)
+library(rjson)
 drv <- dbDriver("MySQL")
 
 xdbsock <- ""
@@ -45,7 +46,7 @@ if(!xbool.tableExists) {
       "cookingMinutes INT(7), ",
       "aggregateLikes INT(7), ",
       "healthScore  INT(7), ",
-      "sourceName VARCHAR(10), ",
+      "sourceName VARCHAR(20), ",
       "pricePerServing DECIMAL(10, 2), ",
       "PRIMARY KEY (DT))"
       
