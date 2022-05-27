@@ -27,7 +27,7 @@ xAPIkey
 
 
 
-## Spoonacular has about 1.7 million recipes, downloading a subset
+## Get Recipe Information: Spoonacular has about 1.7 million recipes, downloading a subset
 ii <- 5600 
 for(ii in 5600:6000) {
 
@@ -54,6 +54,33 @@ for(ii in 5600:6000) {
     
 }
 
+
+## Taste: Spoonacular has about 1.7 million recipes, downloading a subset
+ii <- 5600 
+for(ii in 5600:6000) {
+  
+  xthis_url <-
+    paste0(
+      "https://api.spoonacular.com/recipes/",
+      ii,
+      "/tasteWidget.json",
+      "?apiKey=",
+      xAPIkey
+    )
+  
+  xthisJSON <- try(suppressWarnings(readLines(con=xthis_url)))
+  
+  if("try-error" %in% class(xthisJSON)){
+    cat("Could not read recipe", ii, "\n")
+  }else{
+    xtn_out <- paste0("taste_", ii, "_spoonacular.json")
+    writeLines( xthisJSON, file.path(xpath_scrape, xtn_out) )
+    cat("Done getting recipe", ii, "\n" )
+  }
+  
+  Sys.sleep(1)
+  
+}
 
 
 
