@@ -1,4 +1,4 @@
-purpose: to provide status update on project progress, giving information of newly discovered findings and completed tasks 
+purpose: status update on project progress, providing information of newly discovered findings and completed tasks 
 
 naming convention of entry in format: YYYY/MM/DD_HH:MM_author_role 
   HH:MM in military time 
