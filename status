@@ -1,0 +1,11 @@
+purpose: to provide status update on project progress, giving information of newly discovered findings and completed tasks 
+
+naming convention of entry in format: YYYY/MM/DD_HH:MM_author_role 
+  HH:MM in military time 
+  e.g. 2022_05_29_11:18_sammy_nlp
+
+-----------------------------------------------------------------------
+
+2022_05_29_11:19_sammy_api
+  extraction of API taste and recipe instructions complete
+  
