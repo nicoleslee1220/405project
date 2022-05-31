@@ -1,7 +1,7 @@
+
 library(RMySQL)
 drv <- dbDriver("MySQL")
 xdbsock <- ""
-
 
 xdbuser <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_USER")
 xpw     <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PW")
@@ -9,61 +9,70 @@ xdbname <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_DBNAME")
 xdbhost <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_HOST")
 xdbport <- as.integer( Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PORT") )
 
-
 con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, port=xdbport, unix.sock=xdbsock)
 
 dbGetInfo(con)
 dbListTables(con)
 
-# Getting recipe table
-recipe<-dbGetQuery(con, "SELECT * FROM spoonacularRecipe")
-head(recipe)
-dim(recipe)
+# acquire tables
+recipe <- dbGetQuery(con, "SELECT * FROM spoonacularRecipe")
+taste <- dbGetQuery(con, "SELECT * FROM spoonacularTaste")
 
-
-# Getting taste table
-taste<-dbGetQuery(con, "SELECT * FROM spoonacularTaste")
-dim(taste)
-head(taste)
-
-
-# Getting instruction table
-instruct<- dbGetQuery(con, "SELECT * FROM spoonacularInstruct ")
-head(instruct)
-dim(instruct)
+instruct <- dbGetQuery(con, "SELECT * FROM spoonacularInstruct")
 library(dplyr)
-instruct2<-instruct %>% filter(instructions != "")
-head(instruct2)
-dim(instruct2)
+instruct <- instruct %>% filter(instructions != "")
 
-
-
-
-
-
-##### DATA WRANGLING ####
+#### DATA WRANGLING ####
 library(tidyverse)
 
-# combine all 3 dataframes into 1 datafarme 
-df_list<-list(recipe, taste, instruct2)
-merge3<-df_list %>% reduce(inner_join, by = 'DT')
-head(merge3)
-dim(merge3)
+# combine into one df 
+merge <- recipe %>% inner_join(taste, by = "DT") %>% inner_join(instruct, by = "DT") %>%
+  select(-c(14,15)) %>% mutate(spiciness = c("none", "medium", "high")[findInterval(spiciness, c(0, 380051, 67500000), rightmost.closed = TRUE)])
+  # %>% mutate(spiciness = round(min_max_norm(spiciness), 2))
+    # do not combine mutate and lapply (work too similarly)
+  # findInterval() has interval closed on left, open on right 
 
-# get red of prep mins and cooking mins 
-merge4<-subset(merge3, select = -c(14,15))
-dim(merge4)
-head(merge4)
-
-
-# NORMALIZE Spiciness using this fxn: 
-min_max_norm <- function(x) {
-  (x - min(x)) / (max(x) - min(x)) *100
+# write df to DB 
+bool <- dbExistsTable(con, "spoonacular_clean")
+if (bool){
+  dbGetQuery(con, "DROP TABLE spoonacular_clean")
 }
 
-#apply Min-Max normalization; note col 25 is spiciness 
-merge5_norm <- merge4 %>% mutate(spiciness=lapply(merge4[25], min_max_norm))
+qstr <-
+  paste(
+    "CREATE TABLE spoonacular_clean", 
+    "(DT VARCHAR(10) NOT NULL,",
+    "recipeID INT(10),",
+    "vegetarian VARCHAR(5),",
+    "vegan VARCHAR(5),",
+    "glutenFree VARCHAR(5),",
+    "dairyFree VARCHAR(5),",
+    "veryHealthy VARCHAR(5),",
+    "cheap VARCHAR(5),",
+    "veryPopular VARCHAR(5),",
+    "sustainable VARCHAR(5),",
+    "lowFodmap VARCHAR(5),",
+    "weightWatcherSmartPoints INT(5),",
+    "gaps VARCHAR(5),",
+    "aggregateLikes INT(5),",
+    "healthScore INT(5),",
+    "sourceName TEXT,",
+    "pricePerServing INT(5),",
+    "readyInMinutes INT(5),",
+    "sweetness INT(5),",
+    "saltiness INT(5),",
+    "sourness INT(5),",
+    "bitterness INT(5),", 
+    "savoriness INT(5),",
+    "fattiness INT(5),",
+    "spiciness VARCHAR(10),",
+    "instructions TEXT,",
+    "PRIMARY KEY (DT))"
+  )
+
+dbGetQuery(con, qstr)
+
+dbWriteTable(con, "spoonacular_clean", merge, row.names = FALSE, append = TRUE)
 
 
-#merge5_norm is our spoonacular_clean table
 
