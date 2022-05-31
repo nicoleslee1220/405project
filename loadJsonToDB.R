@@ -138,6 +138,55 @@ for(ii in 1:length(xgfn_sub)) {
 }
 
 
+##Get Recipe Information: Adding readyInMinutes column from json into DB
+
+xpath_main_data <- Sys.getenv("PATH_MY_MAIN_DATA")
+xpath_scrape <- file.path(xpath_main_data, "/spoonacular_Recipe")
+xtableName <- "spoonacularRecipe"
+
+####adding column 
+qstr <- paste0("ALTER TABLE ", xtableName , " ADD readyInMinutes INT(7)")
+xx <- dbGetQuery(con, qstr)
+
+xgfn <- list.files(xpath_scrape, pattern="^recipe")
+xgfn_sub <- xgfn
+
+ii <- 1
+for(ii in 1:length(xgfn_sub)) {
+  
+  xthis_fn <- xgfn_sub[ii] 
+  xxx <- strsplit(xthis_fn, "_")[[1]]
+  DT <- xxx[2] #DT is the recipe number
+  recipeID <- xxx[2]
+  
+  
+  xthis_ls <- fromJSON( file=file.path(xpath_scrape, xthis_fn) )
+  
+  
+  xthis_ls[[c("readyInMinutes")]]
+  
+  
+  
+  qstr <- paste0(
+    "INSERT INTO ", xtableName, " (DT, readyInMinutes) ",
+    # "INSERT INTO ", xtableName, " (DT, recipeID, vegetarian, pricePerServing) ",
+    
+    " VALUES ",
+    "('",
+    DT, "', '",
+    as.integer(readyInMinutes), "')"
+  )
+  
+  xx <- try(dbGetQuery(con, qstr), silent=TRUE)
+  
+  if( "try-error" %in% class(xx) ) {
+    cat("SQL insert into Team Table failed for recipe# ", DT, "\n")
+  } else {
+    cat("Successfully inserted recipe# ", DT, "into Table", "\n")
+  }
+  
+}
+
 
 
 ##Taste: creating table in DB
