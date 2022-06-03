@@ -16,6 +16,7 @@ set.seed(2)
 library(factoextra)
 library(cluster)
 
+setwd("./nlp/_assets")
 vegan <- read.csv("vegan2d.csv")
 rownames(vegan) <- vegan[,3]
 vegan <- vegan[,-3]
