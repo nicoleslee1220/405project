@@ -16,8 +16,34 @@ dbGetInfo(con)
 dbListTables(con)
 
 # Getting recipe table
-recipe<-dbGetQuery(con, "SELECT * FROM spoonacular_clean")
+# recipe<-dbGetQuery(con, "SELECT * FROM spoonacular_clean")
+# dim(recipe)
+
+##########################################################################################################
+#TEMPORARY ADD
+# acquire tables
+recipe <- dbGetQuery(con, "SELECT * FROM spoonacularRecipe")
+taste <- dbGetQuery(con, "SELECT * FROM spoonacularTaste")
+
+instruct <- dbGetQuery(con, "SELECT * FROM spoonacularInstruct")
+library(dplyr)
+instruct <- instruct %>% filter(instructions != "")
+
+#### DATA WRANGLING ####
+library(tidyverse)
+
+# combine into one df 
+recipe <- recipe %>% inner_join(taste, by = "DT") %>% inner_join(instruct, by = "DT") %>%
+  select(-c(14,15)) %>% mutate(spiciness = c("none", "medium", "high")[findInterval(spiciness, c(0, 380051, 67500000), rightmost.closed = TRUE)])
+
 dim(recipe)
+
+#TEMPORARY ADD
+##########################################################################################################
+
+
+
+
 
 #Unrestricted
 ##Pasta w/ meat: checking for pasta + bacon, pasta + chicken, pasta + shrimp, pasta + fish, pasta + beef, pasta + meat
@@ -106,5 +132,15 @@ vegan_df<- data.frame(roastedVegetables, tossedSaladNoMeat, pastaNoMeat)
 
 
 #all dataframe combined
-totalDf <- data.frame(unrestricted_df, glutenFree_df, dairyFree_df, vegan_df)
+allDiets <- data.frame(unrestricted_df, glutenFree_df, dairyFree_df, vegan_df)
+
+
+
+#combine with healthscore
+healthScore <- recipe$healthScore
+totalDf <- data.frame(healthScore, allDiets)
+
+
+#linear regression
+model1 <- lm(healthScore ~ ., data = totalDf)
 
