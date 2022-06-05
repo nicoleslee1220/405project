@@ -10,7 +10,6 @@ xdbname <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_DBNAME")
 xdbhost <- Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_HOST")
 xdbport <- as.integer( Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PORT") )
 
-
 con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, port=xdbport, unix.sock=xdbsock)
 
 dbGetInfo(con)
@@ -21,7 +20,7 @@ dbListTables(con)
 
 ##Get Recipe Information: creating table in DB
 xpath_main_data <- Sys.getenv("PATH_MY_MAIN_DATA")
-xtableName <- "spoonacularRecipe"
+xtableName <- "spoonacularRecipe2"
 xbool.tableExists <- dbExistsTable(con, xtableName) ; xbool.tableExists
 
 if(!xbool.tableExists) {
@@ -47,6 +46,7 @@ if(!xbool.tableExists) {
       "healthScore  INT(7), ",
       "sourceName VARCHAR(20), ",
       "pricePerServing DECIMAL(10, 2), ",
+      "readyInMinutes  INT(7), ",
       "PRIMARY KEY (DT))"
       
     )
@@ -88,14 +88,14 @@ for(ii in 1:length(xgfn_sub)) {
   healthScore <- xthis_ls[[c("healthScore")]]
   sourceName <- xthis_ls[[c("sourceName")]]
   pricePerServing <- xthis_ls[[c("pricePerServing")]]
- 
+  readyInMinutes <- xthis_ls[[c("readyInMinutes")]]
   
 
       
   qstr <- paste0(
           "INSERT INTO ", xtableName, " (DT, recipeID, vegetarian, vegan, glutenFree, dairyFree, veryHealthy,
                                         cheap, veryPopular, sustainable, lowFodmap, weightWatcherSmartPoints, gaps, preparationMinutes,
-                                        cookingMinutes, aggregateLikes, healthScore, sourceName, pricePerServing) ",
+                                        cookingMinutes, aggregateLikes, healthScore, sourceName, pricePerServing, readyInMinutes) ",
           # "INSERT INTO ", xtableName, " (DT, recipeID, vegetarian, pricePerServing) ",
 
           " VALUES ",
@@ -118,7 +118,8 @@ for(ii in 1:length(xgfn_sub)) {
           as.integer(aggregateLikes), "', '",
           as.integer(healthScore), "', '",
           sourceName,"', '",
-          as.integer(pricePerServing), "')"
+          as.integer(pricePerServing),"', '",
+          as.integer(readyInMinutes), "')"
         )
       
       xx <- try(dbGetQuery(con, qstr), silent=TRUE)
@@ -260,5 +261,71 @@ for (ii in 1:length(instruct_fl)){
   }
 }
 
+
+
+
+
+# ##Adding readyInMinutes column to spoonacularRecipe table
+# xpath_main_data <- Sys.getenv("PATH_MY_MAIN_DATA")
+# xtableName <- "spoonacularRecipe"
+# 
+# 
+# 
+# qstr <-
+#   paste0(
+#     "ALTER TABLE ", xtableName, " ",
+#     "ADD COLUMN ", 
+#     # "(DT VARCHAR(15) NOT NULL, ",
+#     "readyInMinutes INT(7)"
+#   
+#     
+#   )
+# 
+# xx <- dbGetQuery(con, qstr)
+# 
+# 
+# 
+# 
+# 
+# 
+# ##Inserting readyInMinutes json data to spoonacularRecipe table
+# xgfn <- list.files(file.path(xpath_main_data, "spoonacular_recipe"), pattern="^recipe")
+# xgfn_sub <- xgfn
+# xpath_scrape <- paste0(xpath_main_data, "/spoonacular_Recipe/")
+# 
+# ii <- 1
+# for(ii in 1:length(xgfn_sub)) {
+#   
+#   xthis_fn <- xgfn_sub[ii] 
+#   xxx <- strsplit(xthis_fn, "_")[[1]]
+#   DT <- xxx[2] #DT is the recipe number
+#   recipeID <- xxx[2]
+#   
+#   
+#   xthis_ls <- fromJSON( file=file.path(xpath_scrape, xthis_fn) )
+#   
+#   readyInMinutesVar <- xthis_ls[[c("readyInMinutes")]]
+#   
+#   qstr <- paste0(
+#     "INSERT INTO ", xtableName, " (readyInMinutes) ",
+#    
+#     
+#     " VALUES ",
+#     "('",
+#     # DT, "', '",
+#     as.integer(readyInMinutesVar), "')", 
+#     "WHERE " 
+#   )
+#   
+#   xx <- try(dbGetQuery(con, qstr), silent=TRUE)
+#   
+#   if( "try-error" %in% class(xx) ) {
+#     cat("SQL insert into Team Table failed for recipe# ", DT, "\n")
+#   } else {
+#     cat("Successfully inserted recipe# ", DT, "into Table", "\n")
+#   }
+#   
+# }
+# 
 
 

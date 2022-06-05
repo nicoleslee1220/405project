@@ -15,7 +15,7 @@ dbGetInfo(con)
 dbListTables(con)
 
 # acquire tables
-recipe <- dbGetQuery(con, "SELECT * FROM spoonacularRecipe")
+recipe <- dbGetQuery(con, "SELECT * FROM spoonacularRecipe2")
 taste <- dbGetQuery(con, "SELECT * FROM spoonacularTaste")
 
 instruct <- dbGetQuery(con, "SELECT * FROM spoonacularInstruct")
