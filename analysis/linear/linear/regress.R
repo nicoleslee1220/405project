@@ -14,7 +14,7 @@ xdbport <- as.integer( Sys.getenv("MAS405_AWS_PROJ_DB_ROUSER_PORT") )
 
 con <- dbConnect(drv, user=xdbuser, password=xpw, dbname=xdbname, host=xdbhost, port=xdbport, unix.sock=xdbsock)
 
-clean_df <- dbGetQuery(con, "SELECT * FROM spoonacular_clean2")
+clean_df <- dbGetQuery(con, "SELECT * FROM spoonacular_clean")
 
 ####
 # prep clean_df for regression
